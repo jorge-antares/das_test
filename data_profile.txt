@@ -1,0 +1,329 @@
+
+══════════════════════════════════════════════════════════════════════
+  PLANE CRASHES DATASET — ANALYSIS & PROFILING
+  Source: /Users/ja4garci/Andres/otherprojects/onttest/output2/cleaned_plane_crashes.db
+══════════════════════════════════════════════════════════════════════
+
+══════════════════════════════════════════════════════════════════════
+  1. DATA PROFILING — NULL Distribution
+══════════════════════════════════════════════════════════════════════
+
+  Total rows: 5,783
+
+  Column                      Type      Non-NULL    NULL      NULL %    Unique  
+  --------------------------  --------  ----------  --------  --------  --------
+  date                        TEXT      5,783       0         0.0%      5,212   
+  time                        TEXT      3,600       2,183     37.7%     1,051   
+  location                    TEXT      5,553       230       4.0%      4,372   
+  country                     TEXT      5,679       104       1.8%      429     
+  operator                    TEXT      5,754       29        0.5%      2,812   
+  flight_no                   TEXT      1,275       4,508     78.0%     868     
+  route                       TEXT      4,094       1,689     29.2%     3,839   
+  ac_type                     TEXT      5,759       24        0.4%      2,666   
+  registration                TEXT      5,426       357       6.2%      5,385   
+  cn_ln                       TEXT      4,574       1,209     20.9%     4,063   
+  aboard_total                INTEGER   5,743       40        0.7%      242     
+  aboard_passengers           INTEGER   5,240       543       9.4%      231     
+  aboard_crew                 INTEGER   5,244       539       9.3%      31      
+  fatalities_aboard           INTEGER   5,772       11        0.2%      200     
+  fatalities_passengers       INTEGER   5,225       558       9.6%      190     
+  fatalities_crew             INTEGER   5,227       556       9.6%      28      
+  ground                      INTEGER   5,731       52        0.9%      53      
+  fatalities_total            INTEGER   5,783       0         0.0%      204     
+  summary                     TEXT      5,552       231       4.0%      5,366   
+
+══════════════════════════════════════════════════════════════════════
+  2. DESCRIPTIVE STATISTICS
+══════════════════════════════════════════════════════════════════════
+
+  Fatality Rate (fatalities_aboard / aboard_total)
+  ──────────────────────────────────────────────────
+  Aggregate fatality rate : 149.7%
+  Average per-flight rate : 100.7%
+
+  Survival Rate ((aboard_total - fatalities_aboard) / aboard_total)
+  ───────────────────────────────────────────────────────────────────
+  Aggregate survival rate : -49.7%
+
+  Ground Casualties
+  ───────────────────
+  Crashes with ground fatalities : 257
+  Total ground fatalities        : 8,749
+  Max ground fatalities (single) : 2,750
+  Avg ground fatalities          : 34.04
+
+  Crew vs Passenger Fatality Ratio
+  ──────────────────────────────────
+  Passenger fatalities : 88,523  (83.5%)
+  Crew fatalities      : 17,479  (16.5%)
+
+  Top 10 Deadliest Single Crashes
+  ─────────────────────────────────
+  Date          Operator                        Aircraft                  Location                        Fatalities
+  ------------  ------------------------------  ------------------------  ------------------------------  ----------
+  1972-05-18    Aeroflot                        Antonov AN-10A            Near Kharkov, Ukraine           122122    
+  2001-09-11    American Airlines               Boeing 767-223ER          New York City                   2842      
+  2001-09-11    United Air Lines                Boeing B-767-222          New York City                   2815      
+  1977-03-27    Pan American World Airways /    Boeing B-747-121 / Boe    Tenerife                        583       
+  1985-08-12    Japan Air Lines                 Boeing B-747-SR46         Mt. Osutaka, near Ueno Villa    520       
+  1996-11-12    Saudi Arabian Airlines / Kaz    Boeing B-747-168B / Il    Near Charkhi Dadri              349       
+  1974-03-03    Turkish Airlines (THY)          McDonnell Douglas DC-1    Near Ermenonville               346       
+  1985-06-23    Air India                       Boeing B-747-237B         Atlantic Ocean                  329       
+  1980-08-19    Saudi Arabian Airlines          Lockheed 1011-200 TriS    Riyadh                          301       
+  2014-07-17    Malaysia Airlines               Boeing 777-2H6ER          Hrabove                         298       
+
+══════════════════════════════════════════════════════════════════════
+  3. TREND ANALYSIS
+══════════════════════════════════════════════════════════════════════
+
+  Crashes & Fatalities per Decade
+  ─────────────────────────────────
+  Decade      Crashes     Total Fatalities  
+  ----------  ----------  ------------------
+  1910s       8           20                
+  1920s       181         653               
+  1930s       344         2,156             
+  1940s       563         9,081             
+  1950s       649         11,992            
+  1960s       773         18,277            
+  1970s       860         143,624           
+  1980s       721         18,145            
+  1990s       775         17,337            
+  2000s       620         17,696            
+  2010s       289         6,890             
+
+  Crashes per Year (1940–2018, ASCII bar)
+  ─────────────────────────────────────────
+  1940 │████████                                 22
+  1941 │████████                                 22
+  1942 │██████████████                           37
+  1943 │████████████████                         42
+  1944 │█████████████████████                    54
+  1945 │████████████████████████████             73
+  1946 │██████████████████████████████████       88
+  1947 │███████████████████████████████          82
+  1948 │█████████████████████████████            76
+  1949 │██████████████████████████               67
+  1950 │██████████████████████████               69
+  1951 │████████████████████████████             74
+  1952 │█████████████████████████                65
+  1953 │██████████████████████████               69
+  1954 │████████████████████████                 62
+  1955 │██████████████████████                   57
+  1956 │████████████████████                     53
+  1957 │█████████████████████████                66
+  1958 │██████████████████████████               68
+  1959 │█████████████████████████                66
+  1960 │███████████████████████████              71
+  1961 │██████████████████████                   59
+  1962 │█████████████████████████████            77
+  1963 │████████████████████████                 62
+  1964 │██████████████████████████               69
+  1965 │█████████████████████████████            75
+  1966 │█████████████████████████████            76
+  1967 │█████████████████████████████████████    96
+  1968 │█████████████████████████████████████    97
+  1969 │███████████████████████████████████      91
+  1970 │███████████████████████████████████      91
+  1971 │██████████████████████████               69
+  1972 │████████████████████████████████████████ 105
+  1973 │███████████████████████████████████      91
+  1974 │█████████████████████████████████        86
+  1975 │██████████████████████████████           78
+  1976 │██████████████████████████████████       88
+  1977 │████████████████████████████████         83
+  1978 │██████████████████████████████           78
+  1979 │███████████████████████████████████      91
+  1980 │█████████████████████████                66
+  1981 │██████████████████████████               67
+  1982 │███████████████████████████              70
+  1983 │████████████████████████                 62
+  1984 │█████████████████████████                65
+  1985 │████████████████████████████             74
+  1986 │████████████████████████                 64
+  1987 │█████████████████████████████            75
+  1988 │████████████████████████████████         83
+  1989 │████████████████████████████████████     95
+  1990 │███████████████████████████              71
+  1991 │██████████████████████████████████       88
+  1992 │█████████████████████████████████        86
+  1993 │██████████████████████████               67
+  1994 │█████████████████████████████████        87
+  1995 │██████████████████████████████           79
+  1996 │███████████████████████████████          81
+  1997 │██████████████████████████               68
+  1998 │██████████████████████████               69
+  1999 │██████████████████████████████           79
+  2000 │█████████████████████████████            77
+  2001 │███████████████████████████              71
+  2002 │█████████████████████████████            75
+  2003 │████████████████████████                 62
+  2004 │███████████████████████                  61
+  2005 │████████████████████                     52
+  2006 │███████████████████                      51
+  2007 │█████████████████████                    54
+  2008 │████████████████████████                 64
+  2009 │████████████████████                     53
+  2010 │██████████████████                       48
+  2011 │██████████████████                       46
+  2012 │███████████                              30
+  2013 │██████████████                           36
+  2014 │█████████████                            33
+  2015 │█████████                                24
+  2016 │███████████                              29
+  2017 │████████                                 21
+  2018 │████████                                 22
+
+  Top 15 Operators by Crash Count
+  ─────────────────────────────────
+  Operator                                    Crashes     Total Fatalities  
+  ------------------------------------------  ----------  ------------------
+  Aeroflot                                    260         131,083           
+  Military - U.S. Air Force                   177         3,901             
+  Air France                                  72          1,753             
+  Deutsche Lufthansa                          64          394               
+  United Air Lines                            44          3,772             
+  Military - U.S. Army Air Forces             43          1,150             
+  China National Aviation Corporation         43          327               
+  Pan American World Airways                  41          1,323             
+  American Airlines                           37          4,311             
+  Military - Royal Air Force                  36          525               
+  US Aerial Mail Service                      35          39                
+  Military - U.S. Navy                        35          755               
+  Private                                     34          171               
+  KLM Royal Dutch Airlines                    34          637               
+  Indian Airlines                             34          868               
+
+  Top 15 Aircraft Types by Fatality Rate (min 10 incidents)
+  ───────────────────────────────────────────────────────────
+  Aircraft Type                             Incidents   Fatalities    Aboard      Rate   
+  ----------------------------------------  ----------  ------------  ----------  -------
+  Cessna 208B Caravan I Super Cargomaste    13          15            15          100.0% 
+  Ilyushin IL-18D                           11          631           639         98.7%  
+  Fokker F-27 Friendship 400M               10          291           295         98.6%  
+  Curtiss C-46D                             12          97            99          98.0%  
+  Curtiss C-46F                             14          45            46          97.8%  
+  Piper PA-23                               12          38            39          97.4%  
+  Lockheed C-130E Hercules                  16          140           144         97.2%  
+  Breguet 14                                21          35            36          97.2%  
+  De Havilland DH-4                         27          26            27          96.3%  
+  Mil Mi-8                                  17          476           499         95.4%  
+  Douglas C-47B                             29          320           338         94.7%  
+  de Havilland DHC-2                        14          73            78          93.6%  
+  Junkers F-13                              17          66            71          93.0%  
+  Douglas C-47                              66          1120          1207        92.8%  
+  Cessna 402B                               13          92            100         92.0%  
+
+══════════════════════════════════════════════════════════════════════
+  4. GEOGRAPHIC ANALYSIS
+══════════════════════════════════════════════════════════════════════
+
+  Top 20 Countries / Regions by Crash Count (last field in location)
+  ────────────────────────────────────────────────────────────────────
+  Country / Region                          Crashes   
+  ----------------------------------------  ----------
+  British Columbia                          24        
+  New York                                  23        
+  Ontario                                   20        
+  Moscow                                    20        
+  Quebec                                    19        
+  Rio de Janeiro                            18        
+  Sao Paulo                                 16        
+  Manila                                    14        
+  Ukraine                                   13        
+  Cairo                                     13        
+  Bogota                                    13        
+  Anchorage                                 13        
+  Chicago                                   12        
+  Near Moscow                               12        
+  BC                                        11        
+  Papua                                     11        
+  London                                    10        
+  Tehran                                    10        
+  Newfoundland                              10        
+  Kansas City                               9         
+
+  Top 20 Specific Crash Locations
+  ─────────────────────────────────
+  Location                                                Crashes   
+  ------------------------------------------------------  ----------
+  Moscow                                                  20        
+  Sao Paulo                                               15        
+  New York                                                15        
+  Rio de Janeiro                                          14        
+  Manila                                                  14        
+  Cairo                                                   13        
+  Bogota                                                  13        
+  Anchorage                                               13        
+  Near Moscow                                             12        
+  Chicago                                                 11        
+  Tehran                                                  10        
+  Kansas City                                             9         
+  Taipei                                                  8         
+  Rome                                                    8         
+  Paris                                                   8         
+  London                                                  8         
+  Kinshasa                                                8         
+  Grand Canyon                                            8         
+  Denver                                                  8         
+  Columbus                                                8         
+
+══════════════════════════════════════════════════════════════════════
+  5. DATA QUALITY
+══════════════════════════════════════════════════════════════════════
+
+  Rows Where aboard_total ≠ aboard_passengers + aboard_crew
+  ───────────────────────────────────────────────────────────
+  Date          Operator                          Total    Pax      Crew   
+  ------------  --------------------------------  -------  -------  -------
+  1919-12-11    Aircraft Travel Transport         1        1        1      
+  1920-06-20    Compañia Colombiana de Navegac    1        1        1      
+  1921-04-06    Military - Royal Australian Ai    2        0        0      
+  1927-01-12    Fokker                            0        0        2      
+  1929-12-19    Deutsche Lufthansa                3        0        2      
+  1938-02-09    Mexicana                          2        0        0      
+  1938-02-22    Deutsche Lufthansa                3        0        0      
+  1949-07-13    Indian Air Force                  0        1        1      
+  1952-10-05    Aeroflot                          21       19       5      
+  1953-05-27    Aeroflot                          20       16       11     
+
+  Total mismatched rows: 27
+
+  Rows Where fatalities_aboard ≠ fatalities_passengers + fatalities_crew
+  ──────────────────────────────────────────────────────────────────────
+  Total mismatched rows: 30
+
+  Rows Where fatalities_aboard > aboard_total
+  ─────────────────────────────────────────────
+  Date          Operator                          Aboard    Fatalities  
+  ------------  --------------------------------  --------  ------------
+  1972-05-18    Aeroflot                          122       122122      
+
+  Potential Duplicates — same (date, operator, route)
+  ─────────────────────────────────────────────────────
+  Date          Operator                        Route                           Count  
+  ------------  ------------------------------  ------------------------------  -------
+  1938-10-01    Deutsche Lufthansa              Frankfurt, Germany - Milan,     2      
+  1946-12-25    CNAC                            Chunking - Shanghi              2      
+  1960-08-17    Aeroflot                        Cairo - Moscow                  2      
+  1968-02-29    Aeroflot                        Krasnoyarsk - Petropavlovsk     2      
+
+  Registrations Used Across Multiple Aircraft Types (top 10)
+  ────────────────────────────────────────────────────────────
+  Registration    # Types    Aircraft Types                                      
+  --------------  ---------  ----------------------------------------------------
+  49              3          Curtiss R-4LM,Douglas C-53,Nord 2501 Noratlas       
+  XA-GOT          2          Curtiss C-46A,Douglas C-46A-CU                      
+  TC-72           2          Fokker F-27 Friendship 400M,Fokker F-27 Friendship  
+  SU-AFK          2          VC-Viking,Vickers 634 Viking 1B                     
+  RF-76801        2          Ilyushin Il-76,Tupolev Tu-142M3                     
+  PT-EPH          2          Embraer 721C Sertanejo,EMB 721C Sertanejo           
+  PT-EHH          2          Embraer 820C Navajo,EMB 820C Navajo                 
+  NC10809         2          Stinson SM-6000B,Stinson SM-6000-B                  
+  N91303          2          Douglas DC-6B,Cessna 180H                           
+  N864JA          2          Brittonnorman BN-2A6,Britten-Norman BN-2A Islander  
+
+══════════════════════════════════════════════════════════════════════
+  Analysis complete.
+══════════════════════════════════════════════════════════════════════
+

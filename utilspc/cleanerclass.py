@@ -35,8 +35,16 @@ from .cleanfun import (
     clean_text,
     parse_date,
     parse_time,
+    parse_location,
+    parse_operator,
+    parse_flight_no,
+    parse_route,
+    parse_ac_type,
+    parse_registration,
+    parse_cn_ln,
     parse_count_field,
     parse_ground,
+    parse_summary,
     )
 
 
@@ -79,6 +87,7 @@ class DataSQLiteCleaner:
             date                TEXT,
             time                TEXT,
             location            TEXT,
+            country             TEXT,
             operator            TEXT,
             flight_no           TEXT,
             route               TEXT,
@@ -102,6 +111,7 @@ class DataSQLiteCleaner:
             "date": "Date of the crash (ISO format YYYY-MM-DD)",
             "time": "Time of the crash (HH:MM, 24-hour format)",
             "location": "Location of the crash",
+            "country": "Country where the crash occurred (derived from location)",
             "operator": "Airline or operator",
             "flight_no": "Flight number assigned by the aircraft operator",
             "route": "Complete or partial route flown prior to the accident",
@@ -122,7 +132,7 @@ class DataSQLiteCleaner:
     def get_insert_row_query(self) -> str:
         return f"""
         INSERT INTO {self.dst_table} VALUES (
-            :date, :time, :location, :operator, :flight_no, :route,
+            :date, :time, :location, :country, :operator, :flight_no, :route,
             :ac_type, :registration, :cn_ln,
             :aboard_total, :aboard_passengers, :aboard_crew,
             :fatalities_aboard, :fatalities_passengers, :fatalities_crew,
@@ -152,17 +162,19 @@ class DataSQLiteCleaner:
                     aboard_total, aboard_pax, aboard_crew = parse_count_field(row["aboard"])
                     fat_aboard, fat_pax, fat_crew         = parse_count_field(row["fatalities"])
                     fat_total = safe_sum(fat_aboard, parse_ground(row["ground"]))
+                    location, country = parse_location(row["location"])
 
                     cleaned_rows.append({
                         "date":                  parse_date(row["date"]),
                         "time":                  parse_time(row["time"]),
-                        "location":              clean_text(row["location"]),
-                        "operator":              clean_text(row["operator"]),
-                        "flight_no":             clean_text(row["flight_no"]),
-                        "route":                 clean_text(row["route"]),
-                        "ac_type":               clean_text(row["ac_type"]),
-                        "registration":          clean_text(row["registration"]),
-                        "cn_ln":                 clean_text(row["cn_ln"]),
+                        "location":              location,
+                        "country":               country,
+                        "operator":              parse_operator(row["operator"]),
+                        "flight_no":             parse_flight_no(row["flight_no"]),
+                        "route":                 parse_route(row["route"]),
+                        "ac_type":               parse_ac_type(row["ac_type"]),
+                        "registration":          parse_registration(row["registration"]),
+                        "cn_ln":                 parse_cn_ln(row["cn_ln"]),
                         "aboard_total":          aboard_total,
                         "aboard_passengers":     aboard_pax,
                         "aboard_crew":           aboard_crew,
@@ -171,7 +183,7 @@ class DataSQLiteCleaner:
                         "fatalities_crew":       fat_crew,
                         "ground":                parse_ground(row["ground"]),
                         "fatalities_total":      fat_total,
-                        "summary":               clean_text(row["summary"]),
+                        "summary":               parse_summary(row["summary"]),
                     })
                 except Exception as exc:
                     skipped += 1
