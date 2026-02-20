@@ -15,10 +15,10 @@ Sections
                             registration reuse across aircraft types
 """
 
-import contextlib
-import sqlite3
-from pathlib import Path
 import sys
+import sqlite3
+import contextlib
+from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent / "utilspc"))
 from utilspc.cleanerclass import BaseSQLite
 
@@ -27,16 +27,6 @@ from utilspc.cleanerclass import BaseSQLite
 TABLE   = "data"
 SEP   = "─" * 70
 THICK = "═" * 70
-
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
-def connect(db_path: Path) -> sqlite3.Connection:
-    if not db_path.exists():
-        raise FileNotFoundError(f"Database not found: {db_path}")
-    conn = sqlite3.connect(db_path)
-    conn.row_factory = sqlite3.Row
-    return conn
 
 
 def section(title: str) -> None:

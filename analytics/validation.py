@@ -24,9 +24,6 @@ from pathlib import Path
 from dataclasses import dataclass, field
 
 
-DB_PATH    = Path("output/cleaned_plane_crashes.db")
-TABLE      = "data"
-
 EXPECTED_SCHEMA: dict[str, str] = {
     "date":                   "TEXT",
     "time":                   "TEXT",
@@ -100,9 +97,9 @@ class ValidationReport:
 
 # ── Individual checks ─────────────────────────────────────────────────────────
 
-def check_schema(cur: sqlite3.Cursor, report: ValidationReport) -> None:
+def check_schema(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """Check that all expected columns exist with the correct declared type."""
-    cur.execute(f"PRAGMA table_info({TABLE})")
+    cur.execute(f"PRAGMA table_info({table})")
     actual = {row[1]: row[2].upper() for row in cur.fetchall()}
 
     for col, expected_type in EXPECTED_SCHEMA.items():
@@ -120,12 +117,12 @@ def check_schema(cur: sqlite3.Cursor, report: ValidationReport) -> None:
         report.warn(f"Schema: unexpected column '{col}' ({actual[col]})")
 
 
-def check_python_types(cur: sqlite3.Cursor, report: ValidationReport) -> None:
+def check_python_types(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """Fetch all rows and verify Python-level types match declared SQLite types."""
     integer_cols = [c for c, t in EXPECTED_SCHEMA.items() if t == "INTEGER"]
     text_cols    = [c for c, t in EXPECTED_SCHEMA.items() if t == "TEXT"]
 
-    cur.execute(f"SELECT * FROM {TABLE}")
+    cur.execute(f"SELECT * FROM {table}")
     rows = cur.fetchall()
 
     int_errors: dict[str, int] = {}
@@ -154,9 +151,9 @@ def check_python_types(cur: sqlite3.Cursor, report: ValidationReport) -> None:
             report.ok(f"Types: '{col}' all values are TEXT or NULL")
 
 
-def check_date_format(cur: sqlite3.Cursor, report: ValidationReport) -> None:
+def check_date_format(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """Validate date format (YYYY-MM-DD) and range (1908–2018)."""
-    cur.execute(f"SELECT date FROM {TABLE} WHERE date IS NOT NULL")
+    cur.execute(f"SELECT date FROM {table} WHERE date IS NOT NULL")
     dates = [row[0] for row in cur.fetchall()]
 
     bad_format = [d for d in dates if not DATE_RE.match(d)]
@@ -185,9 +182,9 @@ def check_date_format(cur: sqlite3.Cursor, report: ValidationReport) -> None:
         report.ok(f"Date range: all years are within 1908–2018")
 
 
-def check_time_format(cur: sqlite3.Cursor, report: ValidationReport) -> None:
+def check_time_format(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """Validate time format (HH:MM)."""
-    cur.execute(f"SELECT time FROM {TABLE} WHERE time IS NOT NULL")
+    cur.execute(f"SELECT time FROM {table} WHERE time IS NOT NULL")
     times = [row[0] for row in cur.fetchall()]
 
     bad = [t for t in times if not TIME_RE.match(t)]
@@ -200,12 +197,12 @@ def check_time_format(cur: sqlite3.Cursor, report: ValidationReport) -> None:
         report.ok(f"Time format: all {len(times)} non-NULL times match HH:MM")
 
 
-def check_non_negative(cur: sqlite3.Cursor, report: ValidationReport) -> None:
+def check_non_negative(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """All numeric columns must be >= 0."""
     int_cols = [c for c, t in EXPECTED_SCHEMA.items() if t == "INTEGER"]
     for col in int_cols:
         cur.execute(
-            f"SELECT COUNT(*) FROM {TABLE} WHERE {col} IS NOT NULL AND {col} < 0"
+            f"SELECT COUNT(*) FROM {table} WHERE {col} IS NOT NULL AND {col} < 0"
         )
         n = cur.fetchone()[0]
         if n:
@@ -214,13 +211,13 @@ def check_non_negative(cur: sqlite3.Cursor, report: ValidationReport) -> None:
             report.ok(f"Non-negative: '{col}' ≥ 0")
 
 
-def check_totals_consistency(cur: sqlite3.Cursor, report: ValidationReport) -> None:
+def check_totals_consistency(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """Cross-check computed totals against component parts."""
 
     checks = [
         (
             "aboard_total = aboard_passengers + aboard_crew",
-            f"""SELECT COUNT(*) FROM {TABLE}
+            f"""SELECT COUNT(*) FROM {table}
                 WHERE aboard_total IS NOT NULL
                   AND aboard_passengers IS NOT NULL
                   AND aboard_crew IS NOT NULL
@@ -228,7 +225,7 @@ def check_totals_consistency(cur: sqlite3.Cursor, report: ValidationReport) -> N
         ),
         (
             "fatalities_aboard = fatalities_passengers + fatalities_crew",
-            f"""SELECT COUNT(*) FROM {TABLE}
+            f"""SELECT COUNT(*) FROM {table}
                 WHERE fatalities_aboard IS NOT NULL
                   AND fatalities_passengers IS NOT NULL
                   AND fatalities_crew IS NOT NULL
@@ -236,14 +233,14 @@ def check_totals_consistency(cur: sqlite3.Cursor, report: ValidationReport) -> N
         ),
         (
             "fatalities_aboard <= aboard_total",
-            f"""SELECT COUNT(*) FROM {TABLE}
+            f"""SELECT COUNT(*) FROM {table}
                 WHERE fatalities_aboard IS NOT NULL
                   AND aboard_total IS NOT NULL
                   AND fatalities_aboard > aboard_total""",
         ),
         (
             "fatalities_total = fatalities_aboard + ground",
-            f"""SELECT COUNT(*) FROM {TABLE}
+            f"""SELECT COUNT(*) FROM {table}
                 WHERE fatalities_total IS NOT NULL
                   AND fatalities_aboard IS NOT NULL
                   AND ground IS NOT NULL
@@ -260,12 +257,12 @@ def check_totals_consistency(cur: sqlite3.Cursor, report: ValidationReport) -> N
             report.ok(f"Totals: '{label}'")
 
 
-def check_duplicates(cur: sqlite3.Cursor, report: ValidationReport) -> None:
+def check_duplicates(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """Flag rows sharing (date, operator, route) as potential duplicates."""
     cur.execute(f"""
         SELECT COUNT(*) FROM (
             SELECT date, operator, route
-            FROM {TABLE}
+            FROM {table}
             WHERE date IS NOT NULL AND operator IS NOT NULL AND route IS NOT NULL
             GROUP BY date, operator, route
             HAVING COUNT(*) > 1
@@ -282,7 +279,10 @@ def check_duplicates(cur: sqlite3.Cursor, report: ValidationReport) -> None:
 
 # ── Runner ────────────────────────────────────────────────────────────────────
 
-def run_validation(db_path: Path = DB_PATH) -> ValidationReport:
+def run_validation(db_path: str | Path, table: str) -> ValidationReport:
+    if isinstance(db_path, str):
+        db_path = Path(db_path)
+
     if not db_path.exists():
         raise FileNotFoundError(f"Database not found: {db_path}")
 
@@ -294,18 +294,19 @@ def run_validation(db_path: Path = DB_PATH) -> ValidationReport:
 
     print(f"Validating: {db_path.resolve()}\n")
 
-    check_schema(cur, report)
-    check_python_types(cur, report)
-    check_date_format(cur, report)
-    check_time_format(cur, report)
-    check_non_negative(cur, report)
-    check_totals_consistency(cur, report)
-    check_duplicates(cur, report)
+    check_schema(cur, report, table)
+    check_python_types(cur, report, table)
+    check_date_format(cur, report, table)
+    check_time_format(cur, report, table)
+    check_non_negative(cur, report, table)
+    check_totals_consistency(cur, report, table)
+    check_duplicates(cur, report, table)
 
     conn.close()
     return report
 
 
 if __name__ == "__main__":
-    report = run_validation()
+    
+    report = run_validation(Path("output/cleaned_plane_crashes.db"), "data")
     report.print_summary()

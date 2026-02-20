@@ -26,8 +26,8 @@ Text fields  : strip surrounding whitespace; '?' → NULL.
                 registration, cn_ln, summary)
 """
 
-import csv
 import os
+import csv
 import sqlite3
 from pathlib import Path
 from .cleanfun import (
