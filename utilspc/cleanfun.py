@@ -21,7 +21,7 @@ def clean_text(value: str | None) -> str | None:
 
 def parse_date(value: str | None) -> str | None: 
     """Parse 'DD-Mon-YY' → 'YYYY-MM-DD', or None on failure."""
-    MAX_YEAR = 2018   # last year present in the dataset
+    MAX_YEAR = 2025   # last year present in the dataset
     if not value or (value.strip() in ("?", "")):
         return None
     try:
@@ -632,6 +632,28 @@ def parse_summary(value: str | None) -> str | None:
     v = re.sub(r"\.{2,}", ".", v)
 
     return v.strip() or None
+
+
+def get_unique_values(
+    cursor: "sqlite3.Cursor", table: str, field: str
+) -> list:
+    """
+    Return the unique values found in *field* of *table*.
+
+    Parameters
+    ----------
+    cursor : open sqlite3.Cursor
+    table  : table name to query
+    field  : column name to inspect
+
+    Returns
+    -------
+    Sorted list of unique values (NULLs excluded).
+    """
+    cursor.execute(
+        f'SELECT DISTINCT "{field}" FROM "{table}" WHERE "{field}" IS NOT NULL ORDER BY "{field}"'
+    )
+    return [row[0] for row in cursor.fetchall()]
 
 
 def safe_sum(*args: int | None) -> int:

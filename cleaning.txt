@@ -23,9 +23,8 @@ Changes:
   '?'          →  NULL
 
 Note: Python's strptime maps two-digit years 00–68 to 2000–2068 and 69–99 to
-1969–1999. Any resulting year beyond 2018 (the last year in the dataset) is
-shifted back 100 years to avoid placing historical crashes in the future.
-Example: '15-Mar-21' would parse to 2021, which exceeds 2018, so it becomes 1921.
+1969–1999. Any resulting year beyond 2025 is shifted back 100 years to avoid 
+placing historical crashes in the future.
 
 
 ──────────────────────────────────────────────────────────────────────────────

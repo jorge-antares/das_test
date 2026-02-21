@@ -184,14 +184,14 @@ def check_date_format(cur: sqlite3.Cursor, report: ValidationReport, table: str)
         except ValueError:
             pass
 
-    out_of_range = [y for y in years if not (1908 <= y <= 2018)]
+    out_of_range = [y for y in years if not (1926 <= y <= 2025)]
     if out_of_range:
         report.warn(
-            f"Date range: {len(out_of_range)} date(s) outside 1908-2018 "
+            f"Date range: {len(out_of_range)} date(s) outside 1926-2025 "
             f"(e.g. {sorted(set(out_of_range))[:5]})"
         )
     else:
-        report.ok(f"Date range: all years are within 1908–2018")
+        report.ok(f"Date range: all years are within 1926–2025")
 
 
 def check_time_format(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
@@ -319,6 +319,4 @@ def run_validation(db_path: str | Path, table: str) -> ValidationReport:
 
 
 if __name__ == "__main__":
-    
-    report = run_validation(Path("output/cleaned_plane_crashes.db"), "data")
-    report.print_summary()
+    pass

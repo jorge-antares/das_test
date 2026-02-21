@@ -75,7 +75,7 @@
                 \item Data cleaning
                 \item Automated validation
                 \item Data profiling
-                \item Version control, CI, testing
+                \item Version control, CI, testing\\(\href{https://github.com/jorge-antares/das_test}{github.com/jorge-antares/das\_test})
                 \item Iterative refinement
             \end{enumerate}
         \column{0.5\textwidth}
@@ -103,7 +103,7 @@
             \item \texttt{analysis.py} --- analysis functions for generating reports and insights.
         \end{itemize}
         \item \texttt{main.py} --- main script to run the cleaning, validation, and analysis pipeline.
-        \item \texttt{test.py} --- test for type checking, cleaning functions, and validation checks.
+        \item \texttt{test.py} --- simple validity test (CI -> GitHub Actions).
         \item \texttt{output}
         \begin{itemize}
             \item \texttt{metadata.csv} --- column-level profile of the cleaned dataset.
@@ -119,7 +119,7 @@
 \section{Data Cleaning}
 \begin{frame}{Date, Time and Location}
     \begin{itemize}
-        \item \textcolor{blue}{\texttt{date}}: Parse `DD-Mon-YY' to `YYYY-MM-DD', or None/Null on failure. Year values < 26 are treated as 2000s, otherwise 1900s.
+        \item \textcolor{blue}{\texttt{date}}: Ambiguity in YY-MM-DD or DD-MM-YY formats is resolved by assuming the former. Parse `DD-Mon-YY' to `YYYY-MM-DD', or None/Null on failure. UTF?
         \vspace{0.3cm}
         \item \textcolor{blue}{\texttt{time}}: Normalise to `HH:MM' (24-hour). Strips prefix `c' with optional space.\\
             Handles 4-digit integers (e.g. `1730' to `17:30'). Returns None for unparseable values.
@@ -172,7 +172,7 @@
 
         \textbf{Format}
         \begin{itemize}
-            \item Dates match \texttt{YYYY-MM-DD}; range 1908--2018
+            \item Dates match \texttt{YYYY-MM-DD}; range 1908--2025
             \item Times match \texttt{HH:MM} (24-hour)
             \item All numeric columns $\geq 0$
         \end{itemize}
@@ -180,8 +180,8 @@
         \column{0.5\textwidth}
         \textbf{Cross-column consistency}
         \begin{itemize}
-            \item \texttt{aboard\_pax + aboard\_crew = aboard\_total}
-            \item \texttt{fat\_pax + fat\_crew = fatalities\_aboard}
+            \item \texttt{aboard\_passengers + aboard\_crew = aboard\_total}
+            \item \texttt{fatalities\_passengers + fatalities\_crew = fatalities\_aboard}
             \item \texttt{fatalities\_aboard} $\leq$ \texttt{aboard\_total}
             \item \texttt{fatalities\_total = fatalities\_aboard + ground}
         \end{itemize}
@@ -201,7 +201,44 @@
 \end{frame}
 
 
-% ── Slide 8: Analysis Sections ────────────────────────────────────────────────
+% ── Slide 8: Metadata ───────────────────────────────────────────────────
+\section{Metadata}
+\begin{frame}{Dataset Schema}
+    \centering
+    \scriptsize
+    \setlength{\tabcolsep}{4pt}
+    metadata.csv (5,783 rows)\quad
+    \medskip
+
+    \begin{tabular}{llrrp{4.6cm}}
+        \toprule
+        \textbf{Field} & \textbf{Type} & \textbf{NA} & \textbf{Unique} & \textbf{Description} \\
+        \midrule
+        \texttt{date}                  & TEXT    &    0 & 5212 & Date of the crash (YYYY-MM-DD) \\
+        \texttt{time}                  & TEXT    & 2183 & 1051 & Time of the crash (HH:MM, 24-hour) \\
+        \texttt{location}              & TEXT    &  230 & 4372 & Location of the crash \\
+        \texttt{country}               & TEXT    &  104 &  429 & Country of crash (derived from location) \\
+        \texttt{operator}              & TEXT    &   29 & 2812 & Airline or operator \\
+        \texttt{flight\_no}            & TEXT    & 4508 &  868 & Flight number assigned by the operator \\
+        \texttt{route}                 & TEXT    & 1689 & 3839 & Route flown prior to the accident \\
+        \texttt{ac\_type}              & TEXT    &   24 & 2666 & Aircraft type \\
+        \texttt{registration}          & TEXT    &  357 & 5385 & ICAO registration of the aircraft \\
+        \texttt{cn\_ln}                & TEXT    & 1209 & 4063 & Construction/serial number \\
+        \texttt{aboard\_total}         & INTEGER &   40 &  242 & Total number of people aboard \\
+        \texttt{aboard\_passengers}    & INTEGER &  543 &  231 & Number of passengers aboard \\
+        \texttt{aboard\_crew}          & INTEGER &  539 &   31 & Number of crew aboard \\
+        \texttt{fatalities\_aboard}    & INTEGER &   11 &  200 & Total number of fatalities aboard \\
+        \texttt{fatalities\_passengers}& INTEGER &  558 &  190 & Number of passenger fatalities \\
+        \texttt{fatalities\_crew}      & INTEGER &  556 &   28 & Number of crew fatalities \\
+        \texttt{ground}                & INTEGER &   52 &   53 & Ground fatalities \\
+        \texttt{fatalities\_total}     & INTEGER &    0 &  204 & Total number of fatalities \\
+        \texttt{summary}               & TEXT    &  231 & 5366 & Brief description of the accident \\
+        \bottomrule
+    \end{tabular}
+\end{frame}
+
+
+% ── Slide 9: Analysis Sections ────────────────────────────────────────────────
 \section{Analysis}
 \begin{frame}{Analysis}
 
@@ -224,26 +261,32 @@
 
 \end{frame}
 
-% ── Slide 9: Conclusion and Future Work ─────────────────────────────────────
-\section{Summary and Improvements}
-\begin{frame}{Summary and Future Work}
+% ── Slide 10: Conclusion ─────────────────────────────────────
+\section{Summary}
+\begin{frame}{Summary}
     \textbf{My approach:}
     \begin{itemize}
-        \item Develop a modular and reusable structure.
+        \item Develop a modular and reusable structure with minimal external dependencies.
         \item Implement programming best practices: version control, testing, CI/CD, and documentation.
+        \item Standardise fields to keep consistency and enable analysis.
+        \item Cross-validate data and create metrics (e.g., fatality rates).
         \item Explore ways to integrate data products with decision-making processes and end-user applications.
     \end{itemize}
 
-    \bigskip
+\end{frame}
 
-    \textbf{Improvements:}
+% ── Slide 11: Disclosure of tools ─────────────────────────────────────
+\section{Disclosure}
+\begin{frame}{Disclosure of Tools}
+    Claude Sonnet 4.6 was used in the following tasks:
     \begin{itemize}
-        \item Enhance location parsing to better handle edge cases and extract more granular geographic information.
-        \item Implement additional validation checks for outliers and temporal inconsistencies (e.g., crashes dated before the Wright brothers' first flight).
-        \item Standardize operator names, AC types, and geographic scales.
-        \item Complement data with external reference datasets (e.g., GIS, weather, economic indicators).
+        \item Parse fields to look for edge cases.
+        \item Create documentation based on project structure and code comments.
+        \item Create HTML for user interface.
+        \item Code completion and debugging suggestions (VS Code).
     \end{itemize}
-
+    \vspace{0.5cm}
+    All LLM outputs were reviewed and edited.
 \end{frame}
 
 \end{document}

@@ -190,7 +190,7 @@ def trend_analysis(conn: sqlite3.Connection) -> None:
     )
 
     # Crashes per year (bar chart using ASCII)
-    sub("Crashes per Year (1940–2018, ASCII bar)")
+    sub("Crashes per Year (1940–2025, ASCII bar)")
     cur.execute(f"""
         SELECT SUBSTR(date, 1, 4) AS year, COUNT(*) AS crashes
         FROM {TABLE}
@@ -408,7 +408,7 @@ def main_analysis(db_path: str, output_file: str = "data_profile.txt") -> None:
                 conn.row_factory = sqlite3.Row
                 print(f"\n{THICK}")
                 print(f"  PLANE CRASHES DATASET — ANALYSIS & PROFILING")
-                print(f"  Source: {db.db_path.resolve()}")
+                print(f"  Source: {db.db_path.name}") 
                 print(THICK)
 
                 profile_nulls(conn)
