@@ -675,7 +675,6 @@ def check_no_duplicates(conn: "sqlite3.Connection", table: str) -> bool:
     True  – every row is unique.
     False – duplicates exist (the repeated rows are printed before returning).
     """
-    import sqlite3
 
     cur = conn.cursor()
 

@@ -8,7 +8,7 @@ from utilspc.cleanerclass import BaseSQLite
 
 
 def test_no_duplicates() -> bool:
-    db = BaseSQLite("output/plane_crashes_data.db")
+    db = BaseSQLite("output/cleaned_plane_crashes.db")
     with db.get_connection() as conn:
         return check_no_duplicates(conn, "data")
 
