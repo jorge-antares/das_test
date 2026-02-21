@@ -28,6 +28,7 @@ EXPECTED_SCHEMA: dict[str, str] = {
     "date":                   "TEXT",
     "time":                   "TEXT",
     "location":               "TEXT",
+    "country":                "TEXT",
     "operator":               "TEXT",
     "flight_no":              "TEXT",
     "route":                  "TEXT",
@@ -66,34 +67,45 @@ class ValidationReport:
     def warn(self, msg: str) -> None:
         self.warnings.append(msg)
 
-    def print_summary(self) -> None:
+    def print_summary(self, filepath: str) -> None:
         width = 70
-        print("=" * width)
-        print("VALIDATION REPORT")
-        print("=" * width)
+        lines: list[str] = []
 
-        print(f"\n  PASSED  ({len(self.passed)})")
+        lines.append("=" * width)
+        lines.append(f"VALIDATION REPORT: {filepath}")
+        lines.append("=" * width)
+
+        lines.append(f"\n  PASSED  ({len(self.passed)})")
         for m in self.passed:
-            print(f"    [OK]   {m}")
+            lines.append(f"    [OK]   {m}")
 
         if self.warnings:
-            print(f"\n  WARNINGS  ({len(self.warnings)})")
+            lines.append(f"\n  WARNINGS  ({len(self.warnings)})")
             for m in self.warnings:
-                print(f"    [WARN] {m}")
+                lines.append(f"    [WARN] {m}")
 
         if self.failed:
-            print(f"\n  FAILED  ({len(self.failed)})")
+            lines.append(f"\n  FAILED  ({len(self.failed)})")
             for m in self.failed:
-                print(f"    [FAIL] {m}")
+                lines.append(f"    [FAIL] {m}")
 
-        print("\n" + "-" * width)
+        lines.append("\n" + "-" * width)
         status = "PASS" if not self.failed else "FAIL"
-        print(f"  Result: {status}  |  "
-              f"Passed: {len(self.passed)}  |  "
-              f"Warnings: {len(self.warnings)}  |  "
-              f"Failed: {len(self.failed)}")
-        print("=" * width)
+        lines.append(
+            f"  Result: {status}  |  "
+            f"Passed: {len(self.passed)}  |  "
+            f"Warnings: {len(self.warnings)}  |  "
+            f"Failed: {len(self.failed)}"
+        )
+        lines.append("=" * width)
 
+        output = "\n".join(lines)
+        print(output)
+
+        report_path = Path(filepath)
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(output + "\n", encoding="utf-8")
+        print(f"\n  Report saved to: {report_path}\n\n")
 
 # ── Individual checks ─────────────────────────────────────────────────────────
 

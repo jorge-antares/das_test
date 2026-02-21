@@ -14,7 +14,7 @@ db.clean_and_insert()
 
 # Validation checks
 report = run_validation("output2/cleaned_plane_crashes.db", "data")
-report.print_summary()
+report.print_summary("output2/validation_report.txt")
 
 # Run analysis
 main_analysis("output2/cleaned_plane_crashes.db")
