@@ -1,0 +1,249 @@
+\documentclass[aspectratio=169, 10pt]{beamer}
+
+\usetheme{CambridgeUS}
+\usecolortheme{dolphin}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{footline}[frame number]
+
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{tikz}
+
+\lstset{
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    language=Python
+}
+
+\title{Data Analytics Specialist Test}
+\subtitle{Cleaning, Validation, and Analysis of a Historical Aviation Crashes}
+\author{Jorge A. Garcia}
+\date{February 23, 2026}
+
+
+\begin{document}
+
+% ── Slide 1: Title ────────────────────────────────────────────────────────────
+\begin{frame}
+    \titlepage
+\end{frame}
+
+% ── Slide 2: Outline ────────────────────────────────────
+\begin{frame}{Outline}
+    \tableofcontents
+\end{frame}
+
+% ── Slide 3: About me ────────────────────────────────────
+\section{About me}
+\begin{frame}{About me}
+    % List key points about your background, motivation, and approach to data analytics.
+    \begin{itemize}
+        \item Quantitative modeler with 10+ years of experience:
+        % Sub list
+        \begin{itemize}
+            \item Optimization (e.g., LP, ML)
+            \item Agent-based simulation
+            \item Physics-based modeling
+            \item Macroeconomic models
+        \end{itemize}
+        \vspace{0.3cm}
+        \item Currently, developer of web-apps for science and decision-making (https://modelbridgelabs.com/).
+        \vspace{0.3cm}
+        \item Goals:
+            \begin{itemize}
+                \item Apply data analytics and modeling to inform decision-making and uncover actionable insights.
+                \item Learn and grow as a professional by taking on new challenges and responsibilities.
+            \end{itemize}
+    \end{itemize}
+
+\end{frame}
+
+
+% ── Slide 4: Dataset and Pipeline Overview ────────────────────────────────────
+\section{General approach}
+\begin{frame}{General approach}
+    \begin{columns}[T]
+        \column{0.5\textwidth}
+            \begin{enumerate}
+                \item Exploratory analysis
+                \item Structure design
+                \item Data cleaning
+                \item Automated validation
+                \item Data profiling
+                \item Version control, CI, testing
+                \item Iterative refinement
+            \end{enumerate}
+        \column{0.5\textwidth}
+        % Figure
+        \begin{figure}
+            \centering
+            \includegraphics[width=0.8\textwidth]{img/structure.png}
+            \caption{Project structure.}
+        \end{figure}
+    \end{columns}
+\end{frame}
+
+% ── Slide 5: File description ────────────────────────────────────
+\section{Project structure}
+\begin{frame}{Project structure}
+    \begin{itemize}
+        \item \texttt{utilspc/}
+        \begin{itemize}
+            \item \texttt{cleanfun.py} --- Parsing functions for cleaning specific fields.
+            \item \texttt{cleanerclass.py} --- Python classes for SQLite connection and cleaning.
+        \end{itemize}
+        \item \texttt{analytics/}
+        \begin{itemize}
+            \item \texttt{validation.py} --- validation checks and profiling report generation.
+            \item \texttt{analysis.py} --- analysis functions for generating reports and insights.
+        \end{itemize}
+        \item \texttt{main.py} --- main script to run the cleaning, validation, and analysis pipeline.
+        \item \texttt{test.py} --- test for type checking, cleaning functions, and validation checks.
+        \item \texttt{output}
+        \begin{itemize}
+            \item \texttt{metadata.csv} --- column-level profile of the cleaned dataset.
+            \item \texttt{data\_profile.txt} --- full analysis report of the cleaned dataset.
+            \item \texttt{cleaned\_plane\_crashes.db} --- cleaned SQLite database.
+            \item \texttt{validation\_report.txt} --- detailed validation report with check results and failure details.
+        \end{itemize}
+    \end{itemize}
+\end{frame}
+
+
+% ── Slide 6: Data Cleaning ────────────────────────────────────────────────────
+\section{Data Cleaning}
+\begin{frame}{Date, Time and Location}
+    \begin{itemize}
+        \item \textcolor{blue}{\texttt{date}}: Parse `DD-Mon-YY' to `YYYY-MM-DD', or None/Null on failure. Year values < 26 are treated as 2000s, otherwise 1900s.
+        \vspace{0.3cm}
+        \item \textcolor{blue}{\texttt{time}}: Normalise to `HH:MM' (24-hour). Strips prefix `c' with optional space.\\
+            Handles 4-digit integers (e.g. `1730' to `17:30'). Returns None for unparseable values.
+        \vspace{0.3cm}
+        \item \textcolor{blue}{\texttt{location}} Returns a tuple (`first', `last') where `first' is the location excluding the country (or None) and `last' is the country name (or None). Creates field \textcolor{blue}{\texttt{country}}.
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Operator, AC type, aboard and fatalities}
+    \begin{itemize}
+        \item \textcolor{blue}{\texttt{operator}}: Strip whitespace, map `?' to NULL and nullify values that are clearly not airline operators:\\
+            \begin{itemize}
+                \item Pure serial / registration codes, e.g. ``'46826/109'``.
+                \item Aircraft manufacturer + model designator entries that were incorrectly placed in the operator column, e.g. `Boeing KC-135E', `Lockheed AC-130H Hercules'.
+            \end{itemize}
+        \vspace{0.3cm}
+        \item \textcolor{blue}{\texttt{ac\_type}}:
+            \begin{itemize}
+                \item Strip whitespace and map `?' to NULL.
+                \item Remove vehicle categories, e.g. `(flying boat)', `(airship)', `(amphibian)'.
+                \item Remove extra spaces.
+                \item Strip any residual leading `/' trailing whitespace.
+                \item Return None is empty
+            \end{itemize}
+
+        \item \textcolor{blue}{\texttt{aboard, fatalities}}: Returns (total, passengers, crew) as int or None.
+    \end{itemize}
+
+\end{frame}
+
+
+% ── Slide 7: Data Validation ─────────────────────────────────────────────────
+\section{Data Validation}
+\begin{frame}{Data Validation}
+
+    \textbf{Automated checks run after every cleaning pass:}
+
+    \bigskip
+
+    \begin{columns}[T]
+        \column{0.5\textwidth}
+        \textbf{Structure}
+        \begin{itemize}
+            \item Schema: all 18 expected columns with correct declared types
+            \item Python-level type consistency per column
+        \end{itemize}
+
+        \bigskip
+
+        \textbf{Format}
+        \begin{itemize}
+            \item Dates match \texttt{YYYY-MM-DD}; range 1908--2018
+            \item Times match \texttt{HH:MM} (24-hour)
+            \item All numeric columns $\geq 0$
+        \end{itemize}
+
+        \column{0.5\textwidth}
+        \textbf{Cross-column consistency}
+        \begin{itemize}
+            \item \texttt{aboard\_pax + aboard\_crew = aboard\_total}
+            \item \texttt{fat\_pax + fat\_crew = fatalities\_aboard}
+            \item \texttt{fatalities\_aboard} $\leq$ \texttt{aboard\_total}
+            \item \texttt{fatalities\_total = fatalities\_aboard + ground}
+        \end{itemize}
+
+        \bigskip
+
+        \textbf{Duplicates}
+        \begin{itemize}
+            \item Rows sharing \texttt{(date, operator, route)} flagged as potential duplicates
+        \end{itemize}
+    \end{columns}
+
+    \bigskip
+    \small
+    Results reported as \textbf{PASS / WARN / FAIL} per check.
+
+\end{frame}
+
+
+% ── Slide 8: Analysis Sections ────────────────────────────────────────────────
+\section{Analysis}
+\begin{frame}{Analysis}
+
+    \textbf{Five sections produced in the profiling report:}
+
+    \bigskip
+
+    \begin{enumerate}
+        \setlength\itemsep{6pt}
+        \item \textbf{Data Profiling} --- NULL rate, unique value count, and type per column.
+
+        \item \textbf{Descriptive Statistics} --- Aggregate fatality rate (fatalities\,/\,aboard), survival rate, ground casualties, and crew vs.\ passenger fatality split.
+
+        \item \textbf{Trend Analysis} --- Crashes and fatalities per decade and per year (ASCII bar chart); top 15 operators by crash count; most dangerous aircraft types by fatality rate (min.\ 10 incidents).
+
+        \item \textbf{Geographic Analysis} --- Top 20 countries/regions and specific crash sites by incident count.
+
+        \item \textbf{Data Quality} --- Mismatched totals, rows where fatalities exceed aboard count, duplicate \texttt{(date, operator, route)} groups, and registration reuse across aircraft types.
+    \end{enumerate}
+
+\end{frame}
+
+% ── Slide 9: Conclusion and Future Work ─────────────────────────────────────
+\section{Summary and Improvements}
+\begin{frame}{Summary and Future Work}
+    \textbf{My approach:}
+    \begin{itemize}
+        \item Develop a modular and reusable structure.
+        \item Implement programming best practices: version control, testing, CI/CD, and documentation.
+        \item Explore ways to integrate data products with decision-making processes and end-user applications.
+    \end{itemize}
+
+    \bigskip
+
+    \textbf{Improvements:}
+    \begin{itemize}
+        \item Enhance location parsing to better handle edge cases and extract more granular geographic information.
+        \item Implement additional validation checks for outliers and temporal inconsistencies (e.g., crashes dated before the Wright brothers' first flight).
+        \item Standardize operator names, AC types, and geographic scales.
+        \item Complement data with external reference datasets (e.g., GIS, weather, economic indicators).
+    \end{itemize}
+
+\end{frame}
+
+\end{document}
