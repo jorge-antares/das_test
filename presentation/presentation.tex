@@ -70,7 +70,7 @@
     \begin{columns}[T]
         \column{0.5\textwidth}
             \begin{enumerate}
-                \item Exploratory analysis
+                \item Exploratory field analysis
                 \item Structure design
                 \item Data cleaning
                 \item Automated validation
@@ -103,7 +103,7 @@
             \item \texttt{analysis.py} --- analysis functions for generating reports and insights.
         \end{itemize}
         \item \texttt{main.py} --- main script to run the cleaning, validation, and analysis pipeline.
-        \item \texttt{test.py} --- simple validity test (CI -> GitHub Actions).
+        \item \texttt{test.py} --- simple validity test (CI - GitHub Actions).
         \item \texttt{output}
         \begin{itemize}
             \item \texttt{metadata.csv} --- column-level profile of the cleaned dataset.
@@ -261,6 +261,34 @@
 
 \end{frame}
 
+
+% ── Slide 10: WebApp ─────────────────────────────────────
+\section{User Interface}
+\begin{frame}{User Interface}
+    % Two columns: left with a screenshot of the web app, right with a brief description of its features and how it can be used to explore the dataset and insights.
+    \begin{columns}[T]
+        \column{0.4\textwidth}
+        \begin{figure}
+            \centering
+            \includegraphics[width=\textwidth]{img/webapp.png}
+            \caption{Web app interface at \href{https://40.233.98.115/}{https://40.233.98.115/}.}
+        \end{figure}
+        \column{0.5\textwidth}
+        \vspace{0.5cm}
+        \textbf{Frameworks used:}
+        \begin{itemize}
+            \item Flask for backend API.
+            \item Jinja2 for HTML templating.
+            \item Bootstrap for responsive design.
+            \item Docker for containerisation and deployment.
+            \item Nginx for reverse proxy and static file serving.
+        \end{itemize}
+        \vspace{0.5cm}
+        Hosting via a VM instance (Ubuntu server 24.04.4 LTS) on Oracle Cloud.
+    \end{columns}
+
+\end{frame}
+
 % ── Slide 10: Conclusion ─────────────────────────────────────
 \section{Summary}
 \begin{frame}{Summary}
@@ -280,7 +308,7 @@
 \begin{frame}{Disclosure of Tools}
     Claude Sonnet 4.6 was used in the following tasks:
     \begin{itemize}
-        \item Parse fields to look for edge cases.
+        \item Parse unique values of fields to look for edge cases.
         \item Create documentation based on project structure and code comments.
         \item Create HTML for user interface.
         \item Code completion and debugging suggestions (VS Code).
