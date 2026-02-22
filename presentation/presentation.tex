@@ -119,12 +119,13 @@
 \section{Data Cleaning}
 \begin{frame}{Date, Time and Location}
     \begin{itemize}
-        \item \textcolor{blue}{\texttt{date}}: Ambiguity in YY-MM-DD or DD-MM-YY formats is resolved by assuming the former. Parse `DD-Mon-YY' to `YYYY-MM-DD', or None/Null on failure. UTF?
+        \item \textcolor{blue}{\texttt{date}}: Somewhat consistent format. Parse `DD-Mon-YY' to `YYYY-MM-DD' or None/Null on failure. Potential ambiguity: YY-MM-DD or DD-MM-YY and UTF time standard?. 
         \vspace{0.3cm}
-        \item \textcolor{blue}{\texttt{time}}: Normalise to `HH:MM' (24-hour). Strips prefix `c' with optional space.\\
-            Handles 4-digit integers (e.g. `1730' to `17:30'). Returns None for unparseable values.
+        \item \textcolor{blue}{\texttt{time}}: Universal format. Normalise to `HH:MM' (24-hour). Strips prefix `c' with optional space.\\
+            4-digit integers (e.g. `1730' to `17:30'). Returns None for unparseable values.
         \vspace{0.3cm}
-        \item \textcolor{blue}{\texttt{location}} Returns a tuple (`first', `last') where `first' is the location excluding the country (or None) and `last' is the country name (or None). Creates field \textcolor{blue}{\texttt{country}}.
+        \item \textcolor{blue}{\texttt{location}} Returns a tuple (`first', `last') where `first' is the location excluding the country (or None) and `last' is the country name (or None). Created sets to assign US and UK.\\
+        Created field \textcolor{blue}{\texttt{country}}. This is a key field worth standardising.
     \end{itemize}
 
 \end{frame}
@@ -136,6 +137,7 @@
                 \item Pure serial / registration codes, e.g. ``'46826/109'``.
                 \item Aircraft manufacturer + model designator entries that were incorrectly placed in the operator column, e.g. `Boeing KC-135E', `Lockheed AC-130H Hercules'.
             \end{itemize}
+            Potential to create Military/Civilian/Unknown field based on operator name.
         \vspace{0.3cm}
         \item \textcolor{blue}{\texttt{ac\_type}}:
             \begin{itemize}
@@ -145,8 +147,9 @@
                 \item Strip any residual leading `/' trailing whitespace.
                 \item Return None is empty
             \end{itemize}
+            Potential to group by maker (e.g. `Boeing', `Airbus', `Douglas').
 
-        \item \textcolor{blue}{\texttt{aboard, fatalities}}: Returns (total, passengers, crew) as int or None.
+        \item \textcolor{blue}{\texttt{aboard, fatalities}}: Parsed fields, remove non-numeric values and created fields related to total, passengers, and crew (or None).
     \end{itemize}
 
 \end{frame}
@@ -261,8 +264,19 @@
 
 \end{frame}
 
+% ── Slide 10: Next Steps ────────────────────────────────────────────────
+\begin{frame}{Next steps}
+    \begin{itemize}
+        \item Get unique values again.
+        \item Consider grouping for AC type and operator (e.g. by maker or military/civilian).
+        \item Standardise country names.
+        \item Remove duplicates or create a flag for them.
+        \item Remove or correct outliers.
+        \item Consider flag for data quality issues (e.g. fatalities > aboard).
+    \end{itemize}
+\end{frame}
 
-% ── Slide 10: WebApp ─────────────────────────────────────
+% ── Slide 11: WebApp ─────────────────────────────────────
 \section{User Interface}
 \begin{frame}{User Interface}
     % Two columns: left with a screenshot of the web app, right with a brief description of its features and how it can be used to explore the dataset and insights.
@@ -289,11 +303,12 @@
 
 \end{frame}
 
-% ── Slide 10: Conclusion ─────────────────────────────────────
+% ── Slide 12: Conclusion ─────────────────────────────────────
 \section{Summary}
 \begin{frame}{Summary}
     \textbf{My approach:}
     \begin{itemize}
+        \item Perform cleaning by stages of continuous refinement.
         \item Develop a modular and reusable structure with minimal external dependencies.
         \item Implement programming best practices: version control, testing, CI/CD, and documentation.
         \item Standardise fields to keep consistency and enable analysis.
@@ -303,7 +318,7 @@
 
 \end{frame}
 
-% ── Slide 11: Disclosure of tools ─────────────────────────────────────
+% ── Slide 13: Disclosure of tools ─────────────────────────────────────
 \section{Disclosure}
 \begin{frame}{Disclosure of Tools}
     Claude Sonnet 4.6 was used in the following tasks:

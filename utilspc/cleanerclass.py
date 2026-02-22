@@ -3,27 +3,6 @@ cleandb.py
 ----------
 Reads rawdata/plane_crashes_data.db, enforces consistent data types,
 cleans all columns, and writes the result to cleaned_plane_crashes.db.
-
-Cleaning rules per column
-─────────────────────────
-date         : 'DD-Mon-YY' → ISO 'YYYY-MM-DD' (TEXT).
-               Python strptime maps YY 00-68 → 20xx, 69-99 → 19xx;
-               years beyond 2018 (the dataset's last year) are shifted
-               back 100 years to cover 1919-1999.
-               Note: 1908-1918 entries share the same two-digit suffix as
-               2008-2018 entries and are stored as 2008-2018 in the output
-               due to format ambiguity inherent in the source data.
-time         : strip leading 'c'/'c ' (≈ approximate), normalise bare
-               'HHMM' integers to 'HH:MM', then validate HH:MM format.
-               Unknown ('?') → NULL.
-aboard       : 'N ▸ (passengers:X▸ crew:Y)' → three INTEGER columns:
-               aboard_total, aboard_passengers, aboard_crew. '?' → NULL.
-fatalities   : same pattern → fatalities_aboard, fatalities_passengers,
-               fatalities_crew. '?' → NULL.
-ground       : '?' → NULL; otherwise INTEGER.
-Text fields  : strip surrounding whitespace; '?' → NULL.
-               (location, operator, flight_no, route, ac_type,
-                registration, cn_ln, summary)
 """
 
 import os

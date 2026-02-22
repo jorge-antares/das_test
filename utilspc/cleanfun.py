@@ -70,11 +70,7 @@ def parse_time(value: str | None) -> str | None:
     return None  # unparseable
 
 
-# ---------------------------------------------------------------------------
-# Location parsing helpers
-# ---------------------------------------------------------------------------
-
-_US_STATE_NAMES: frozenset[str] = frozenset({
+us_state_names = frozenset({
     "Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado",
     "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho",
     "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana",
@@ -85,11 +81,10 @@ _US_STATE_NAMES: frozenset[str] = frozenset({
     "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
     "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington",
     "West Virginia", "Wisconsin", "Wyoming", "District Of Columbia",
-    # Territories commonly appearing in the dataset
     "Puerto Rico", "Guam", "American Samoa",
 })
 
-_US_STATE_ABBREVS: frozenset[str] = frozenset({
+us_state_abbrevs = frozenset({
     "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA",
     "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
     "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
@@ -97,12 +92,12 @@ _US_STATE_ABBREVS: frozenset[str] = frozenset({
     "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
 })
 
-_UK_COMPONENTS: frozenset[str] = frozenset({
+uk_territories = frozenset({
     "england", "scotland", "wales", "northern ireland",
     "uk", "u.k.", "united kingdom", "great britain", "britain",
 })
 
-_GEO_WORDS = re.compile(
+geo_words_parser = re.compile(
     r"\b(ocean|sea|channel|gulf|strait|atlantic|pacific|mediterranean|"
     r"arctic|antarctic|bay|lake|river|north sea|indian ocean)\b",
     re.IGNORECASE,
@@ -139,25 +134,25 @@ def parse_location(value: str | None) -> tuple[str | None, str | None]:
     first = ", ".join(parts[:-1]) if len(parts) > 1 else None
 
     # --- US state check ---
-    if last.upper() in _US_STATE_ABBREVS:
+    if last.upper() in us_state_abbrevs:
         return first, "United States"
-    if last.title() in _US_STATE_NAMES:
+    if last.title() in us_state_names:
         return first, "United States"
 
     # --- UK constituent check ---
-    if last.lower() in _UK_COMPONENTS:
+    if last.lower() in uk_territories:
         return first, "United Kingdom"
 
     # --- Geographic feature as last token → no country parseable ---
-    if _GEO_WORDS.search(last):
+    if geo_words_parser.search(last):
         return None, None
 
     # --- Single token (no comma) ---
     if len(parts) == 1:
-        if _GEO_WORDS.search(value):
+        if geo_words_parser.search(value):
             return None, None
         # Check for embedded UK component (e.g. 'Glasgow Scotland')
-        for component in _UK_COMPONENTS:
+        for component in uk_territories:
             if re.search(rf"\b{re.escape(component)}\b", value, re.IGNORECASE):
                 return None, "United Kingdom"
         return None, last  # bare country name (e.g. 'Russia', 'Brazil')
@@ -171,7 +166,7 @@ def parse_location(value: str | None) -> tuple[str | None, str | None]:
 # ---------------------------------------------------------------------------
 
 # Entries that are purely numeric / serial codes (e.g. '46826/109')
-_OPERATOR_PURE_CODE: re.Pattern = re.compile(r"^\d+[/\-]\d+$")
+operator_pure_code_parser: re.Pattern = re.compile(r"^\d+[/\-]\d+$")
 
 # Aircraft manufacturer prefixes that occasionally appear in the operator field
 # because of data-entry errors (the aircraft type was placed in the operator
@@ -186,7 +181,7 @@ _OPERATOR_PURE_CODE: re.Pattern = re.compile(r"^\d+[/\-]\d+$")
 #   IAI 1124 Westwind          → NULL
 #   North American Sabreliner 40 → NULL
 #   Lockheed Loadstar          → NULL  (aircraft name, no company indicator)
-_OPERATOR_AC_TYPE: re.Pattern = re.compile(
+operator_ac_type: re.Pattern = re.compile(
     r"^(?:Boeing|Lockheed|Bristol|Carvair|IAI|North\s+American)\s+"
     r"(?!Air\b|Aircraft\b|Aeroplane\b|Airways\b|Transport\b|Company\b|Co\.)",
     re.IGNORECASE,
@@ -196,7 +191,7 @@ _OPERATOR_AC_TYPE: re.Pattern = re.compile(
 # Matches an uppercase letter (immediately preceded by a lowercase letter)
 # followed by an optional hyphen, one or more digits, and an optional
 # trailing uppercase variant letter — all with no separating space.
-_OPERATOR_TRAILING_AC: re.Pattern = re.compile(
+operator_trailing_ac_parser: re.Pattern = re.compile(
     r"(?<=[a-z])[A-Z]-?\d+[A-Z]?\s*$"
 )
 
@@ -225,15 +220,15 @@ def parse_operator(value: str | None) -> str | None:
         return None
 
     # Pure numeric / registration code → not an operator
-    if _OPERATOR_PURE_CODE.match(v):
+    if operator_pure_code_parser.match(v):
         return None
 
     # Aircraft manufacturer + model designation in operator field → not an operator
-    if _OPERATOR_AC_TYPE.match(v):
+    if operator_ac_type.match(v):
         return None
 
     # Strip trailing run-on aircraft designator (e.g. '…Air ForceC-47')
-    v = _OPERATOR_TRAILING_AC.sub("", v).strip()
+    v = operator_trailing_ac_parser.sub("", v).strip()
     return v or None
 
 
@@ -243,7 +238,7 @@ def parse_operator(value: str | None) -> str | None:
 
 # Misplaced date entries in the flight_no column (e.g. '10-Jan', '2-Apr').
 # strptime '%d-%b-%y' ambiguity causes dates to land here occasionally.
-_FLIGHT_NO_DATE: re.Pattern = re.compile(
+flight_no_date_parser: re.Pattern = re.compile(
     r"^\d{1,2}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$",
     re.IGNORECASE,
 )
@@ -278,7 +273,7 @@ def parse_flight_no(value: str | None) -> str | None:
         return None
 
     # Misplaced date entry (e.g. '10-Jan', '8-Nov')
-    if _FLIGHT_NO_DATE.match(v):
+    if flight_no_date_parser.match(v):
         return None
 
     # Operation type, not a flight number
@@ -318,7 +313,7 @@ def parse_flight_no(value: str | None) -> str | None:
 #   'Positiioning - San Jose - Honolulu'   → 'San Jose - Honolulu'
 #   'Training -Montreal - Ottawa'          → 'Montreal - Ottawa'
 #   'Sightseeing / Teteboro - Ocean City, NJ' → 'Teteboro - Ocean City, NJ'
-_ROUTE_OP_PREFIX: re.Pattern = re.compile(
+route_op_prefix_parser: re.Pattern = re.compile(
     r"^(?:"
     r"positi+oning"
     r"|practice\s+maneuvers?"
@@ -340,7 +335,7 @@ _ROUTE_OP_PREFIX: re.Pattern = re.compile(
 )
 
 # Pure aircraft-registration code in the route field (e.g. 'VP-BPS').
-_ROUTE_REGISTRATION: re.Pattern = re.compile(
+route_registration_parser: re.Pattern = re.compile(
     r"^[A-Z]{1,2}-[A-Z0-9]+$", re.IGNORECASE
 )
 
@@ -367,7 +362,7 @@ def parse_route(value: str | None) -> str | None:
         return None
 
     # Pure registration code — check before dash normalisation (e.g. 'VP-BPS')
-    if _ROUTE_REGISTRATION.match(v.strip()):
+    if route_registration_parser.match(v.strip()):
         return None
 
     # Normalise whitespace around ' - ' separators
@@ -382,7 +377,7 @@ def parse_route(value: str | None) -> str | None:
     v = re.sub(r",\s*,", ",", v)
 
     # Strip leading operation-type prefix
-    stripped = _ROUTE_OP_PREFIX.sub("", v).strip(" -")
+    stripped = route_op_prefix_parser.sub("", v).strip(" -")
     if stripped != v:
         # Keep the remainder only when it looks like an O-D route (contains ' - ').
         # Bare location fragments (e.g. 'Fentress Airpark', 'over Rotterdam')
@@ -434,7 +429,7 @@ def parse_ac_type(value: str | None) -> str | None:
 
 # Misplaced date strings that appear in the registration field.
 # 'DD-Mon' (e.g. '12-May') and 'D/M/YYYY' (e.g. '1/2/2003').
-_REG_DATE: re.Pattern = re.compile(
+reg_date_parser: re.Pattern = re.compile(
     r"^\d{1,2}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$"
     r"|^\d{1,2}/\d{1,2}/\d{4}$",
     re.IGNORECASE,
@@ -489,7 +484,7 @@ def parse_registration(value: str | None) -> str | None:
         return None
 
     # Misplaced date entry
-    if _REG_DATE.match(v):
+    if reg_date_parser.match(v):
         return None
 
     # Split on '/' to handle two-aircraft collision pairs
@@ -511,7 +506,7 @@ def parse_registration(value: str | None) -> str | None:
 # ---------------------------------------------------------------------------
 
 # Misplaced date strings in the cn_ln column (e.g. '2-Jan', '7-May').
-_CN_LN_DATE: re.Pattern = re.compile(
+cn_ln_date_parser: re.Pattern = re.compile(
     r"^\d{1,2}-(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)$",
     re.IGNORECASE,
 )
@@ -542,7 +537,7 @@ def parse_cn_ln(value: str | None) -> str | None:
         return None
 
     # Misplaced date entry
-    if _CN_LN_DATE.match(v):
+    if cn_ln_date_parser.match(v):
         return None
 
     # Strip parenthetical annotations (e.g. ' (KLM-1)')

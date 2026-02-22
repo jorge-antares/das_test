@@ -107,7 +107,6 @@ class ValidationReport:
         report_path.write_text(output + "\n", encoding="utf-8")
         print(f"\n  Report saved to: {report_path}\n\n")
 
-# ── Individual checks ─────────────────────────────────────────────────────────
 
 def check_schema(cur: sqlite3.Cursor, report: ValidationReport, table: str) -> None:
     """Check that all expected columns exist with the correct declared type."""
@@ -288,8 +287,6 @@ def check_duplicates(cur: sqlite3.Cursor, report: ValidationReport, table: str) 
     else:
         report.ok("Duplicates: no duplicate (date, operator, route) combinations found")
 
-
-# ── Runner ────────────────────────────────────────────────────────────────────
 
 def run_validation(db_path: str | Path, table: str) -> ValidationReport:
     if isinstance(db_path, str):
