@@ -16,6 +16,12 @@ def clean_text(value: str | None) -> str | None:
     v = value.strip()
     return None if v in ("?", "") else v
 
+def remove_extra_whitespace(value: str | None) -> str | None:
+    """Collapse runs of whitespace to a single space; strip leading/trailing."""
+    if value is None:
+        return None
+    v = re.sub(r"\s{2,}", " ", value).strip()
+    return v or None
 
 
 

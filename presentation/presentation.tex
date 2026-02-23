@@ -46,13 +46,13 @@
         \item Quantitative modeler with 10+ years of experience:
         % Sub list
         \begin{itemize}
-            \item Optimization (e.g., LP, ML)
+            \item Decision models (optimization)
             \item Agent-based simulation
             \item Physics-based modeling
             \item Macroeconomic models
         \end{itemize}
         \vspace{0.3cm}
-        \item Currently, developer of web-apps for science and decision-making (https://modelbridgelabs.com/).
+        \item Currently, developer of web-apps for science and decision-making (\href{https://modelbridgelabs.com/}{modelbridgelabs.com}).
         \vspace{0.3cm}
         \item Goals:
             \begin{itemize}
@@ -94,22 +94,22 @@
     \begin{itemize}
         \item \texttt{utilspc/}
         \begin{itemize}
-            \item \texttt{cleanfun.py} --- Parsing functions for cleaning specific fields.
-            \item \texttt{cleanerclass.py} --- Python classes for SQLite connection and cleaning.
+            \item \texttt{cleanfun.py}: Parsing functions for cleaning specific fields.
+            \item \texttt{cleanerclass.py}: Python classes for SQLite connection and cleaning.
         \end{itemize}
         \item \texttt{analytics/}
         \begin{itemize}
-            \item \texttt{validation.py} --- validation checks and profiling report generation.
-            \item \texttt{analysis.py} --- analysis functions for generating reports and insights.
+            \item \texttt{validation.py}: Verification checks and profiling report generation.
+            \item \texttt{analysis.py}: Analysis functions for generating reports and insights.
         \end{itemize}
-        \item \texttt{main.py} --- main script to run the cleaning, validation, and analysis pipeline.
-        \item \texttt{test.py} --- simple validity test (CI - GitHub Actions).
-        \item \texttt{output}
+        \item \texttt{main.py}: Main script to run the cleaning, validation, and analysis functions.
+        \item \texttt{test.py}: Simple validity test (CI - GitHub Actions).
+        \item \texttt{output/}
         \begin{itemize}
-            \item \texttt{metadata.csv} --- column-level profile of the cleaned dataset.
-            \item \texttt{data\_profile.txt} --- full analysis report of the cleaned dataset.
-            \item \texttt{cleaned\_plane\_crashes.db} --- cleaned SQLite database.
-            \item \texttt{validation\_report.txt} --- detailed validation report with check results and failure details.
+            \item \texttt{metadata.csv}: column-level profile of the cleaned dataset.
+            \item \texttt{data\_profile.txt}: full analysis report of the cleaned dataset.
+            \item \texttt{cleaned\_plane\_crashes.db}: cleaned SQLite database.
+            \item \texttt{validation\_report.txt}: detailed validation report with check results and failure details.
         \end{itemize}
     \end{itemize}
 \end{frame}
@@ -119,10 +119,10 @@
 \section{Data Cleaning}
 \begin{frame}{Date, Time and Location}
     \begin{itemize}
-        \item \textcolor{blue}{\texttt{date}}: Somewhat consistent format. Parse `DD-Mon-YY' to `YYYY-MM-DD' or None/Null on failure. Potential ambiguity: YY-MM-DD or DD-MM-YY and UTF time standard?. 
+        \item \textcolor{blue}{\texttt{date}}: Somewhat consistent format. Parse `DD-Mon-YY' to `YYYY-MM-DD' or None/Null on failure. Potential ambiguity: YY-MM-DD or DD-MM-YY, century for 14-25?,  UTC time?. 
         \vspace{0.3cm}
         \item \textcolor{blue}{\texttt{time}}: Universal format. Normalise to `HH:MM' (24-hour). Strips prefix `c' with optional space.\\
-            4-digit integers (e.g. `1730' to `17:30'). Returns None for unparseable values.
+            Convert 3- and 4-digit integers (e.g. `1730' to `17:30'). Returns None for unparseable values.
         \vspace{0.3cm}
         \item \textcolor{blue}{\texttt{location}} Returns a tuple (`first', `last') where `first' is the location excluding the country (or None) and `last' is the country name (or None). Created sets to assign US and UK.\\
         Created field \textcolor{blue}{\texttt{country}}. This is a key field worth standardising.
@@ -132,32 +132,31 @@
 
 \begin{frame}{Operator, AC type, aboard and fatalities}
     \begin{itemize}
-        \item \textcolor{blue}{\texttt{operator}}: Strip whitespace, map `?' to NULL and nullify values that are clearly not airline operators:\\
+        \item \textcolor{blue}{\texttt{operator}}: Strip whitespaces and nullify values that are clearly not airline operators:\\
             \begin{itemize}
                 \item Pure serial / registration codes, e.g. ``'46826/109'``.
-                \item Aircraft manufacturer + model designator entries that were incorrectly placed in the operator column, e.g. `Boeing KC-135E', `Lockheed AC-130H Hercules'.
+                \item Aircraft manufacturer + model designator, e.g. `Boeing KC-135E', `Lockheed AC-130H Hercules'.
             \end{itemize}
             Potential to create Military/Civilian/Unknown field based on operator name.
         \vspace{0.3cm}
         \item \textcolor{blue}{\texttt{ac\_type}}:
             \begin{itemize}
-                \item Strip whitespace and map `?' to NULL.
+                \item Strip whitespaces and nullify `?' chars.
                 \item Remove vehicle categories, e.g. `(flying boat)', `(airship)', `(amphibian)'.
-                \item Remove extra spaces.
                 \item Strip any residual leading `/' trailing whitespace.
-                \item Return None is empty
+                \item Return None if empty
             \end{itemize}
             Potential to group by maker (e.g. `Boeing', `Airbus', `Douglas').
-
         \item \textcolor{blue}{\texttt{aboard, fatalities}}: Parsed fields, remove non-numeric values and created fields related to total, passengers, and crew (or None).
+        \item \textcolor{blue}{\texttt{summary}}: Cleaned. Potential to extract cause based on text classification.
     \end{itemize}
 
 \end{frame}
 
 
-% ── Slide 7: Data Validation ─────────────────────────────────────────────────
-\section{Data Validation}
-\begin{frame}{Data Validation}
+% ── Slide 7: Data Verification ─────────────────────────────────────────────────
+\section{Data Verification}
+\begin{frame}{Data Verification}
 
     \textbf{Automated checks run after every cleaning pass:}
 
@@ -193,7 +192,7 @@
 
         \textbf{Duplicates}
         \begin{itemize}
-            \item Rows sharing \texttt{(date, operator, route)} flagged as potential duplicates
+            \item Rows sharing \texttt{(date, operator, route)} flagged as potential duplicates.
         \end{itemize}
     \end{columns}
 
@@ -272,7 +271,7 @@
         \item Standardise country names.
         \item Remove duplicates or create a flag for them.
         \item Remove or correct outliers.
-        \item Consider flag for data quality issues (e.g. fatalities > aboard).
+        \item Consider flag for data quality issues (e.g. fatalities $>$ aboard).
     \end{itemize}
 \end{frame}
 
@@ -298,7 +297,8 @@
             \item Nginx for reverse proxy and static file serving.
         \end{itemize}
         \vspace{0.5cm}
-        Hosting via a VM instance (Ubuntu server 24.04.4 LTS) on Oracle Cloud.
+        Hosting via a VM instance (Ubuntu server 24.04.4 LTS) on Oracle Cloud.\\
+        Repository: \href{https://github.com/jorge-antares/ontario}{github.com/jorge-antares/ontario}
     \end{columns}
 
 \end{frame}

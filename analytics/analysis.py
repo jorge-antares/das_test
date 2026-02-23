@@ -190,11 +190,11 @@ def trend_analysis(conn: sqlite3.Connection) -> None:
     )
 
     # Crashes per year (bar chart using ASCII)
-    sub("Crashes per Year (1940–2025, ASCII bar)")
+    sub("Crashes per Year (1926–2025, ASCII bar)")
     cur.execute(f"""
         SELECT SUBSTR(date, 1, 4) AS year, COUNT(*) AS crashes
         FROM {TABLE}
-        WHERE date IS NOT NULL AND CAST(SUBSTR(date, 1, 4) AS INTEGER) >= 1940
+        WHERE date IS NOT NULL AND CAST(SUBSTR(date, 1, 4) AS INTEGER) >= 1926
         GROUP BY year
         ORDER BY year
     """)

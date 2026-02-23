@@ -6,7 +6,7 @@ Output table : data                (output/cleaned_plane_crashes.db)
 
 General rule applied to every text field
 -----------------------------------------
-- Leading and trailing whitespace is stripped.
+- Leading, trailing, and extra whitespaces are stripped.
 - The value '?' (unknown marker used throughout the raw data) is converted to NULL.
 - Empty strings are converted to NULL.
 
@@ -22,8 +22,7 @@ Changes:
   '03-Jun-01'  →  '2001-06-03'
   '?'          →  NULL
 
-Note: Python's strptime maps two-digit years 00–68 to 2000–2068 and 69–99 to
-1969–1999. Any resulting year beyond 2025 is shifted back 100 years to avoid 
+Note: Any resulting year beyond 2025 is shifted back 100 years to avoid 
 placing historical crashes in the future.
 
 
